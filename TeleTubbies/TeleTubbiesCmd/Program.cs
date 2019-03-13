@@ -4,25 +4,21 @@ namespace TeletubbiesCmd
 {
     partial class Program
     {
-        private static readonly Regex regexIs = new Regex("^(?<who>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po)) is (?<what>.+)$");
-        private static readonly Regex regexAsk = new Regex("^Ask (?<who>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po))$");
-        private static readonly Regex regexWhispers = new Regex("^(?<who>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po)) whispers to (?<who2>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po))$");
-        private static readonly Regex regexYells = new Regex("^(?<who>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po)) yells to (?<who2>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po))$");
-        private static readonly Regex regexSpeaks = new Regex("^(?<who>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po)) speaks to (?<who2>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po))$");
-        private static readonly Regex regexTell = new Regex("^Tell (?<who>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po)) (?<question>.+)$");
-        private static readonly Regex regexRob = new Regex("^(?<robber>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po)) robs (?<victim>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po))$");
-        private static readonly Regex regexVote = new Regex("^Vote on (?<question>.+)$");
+        private const string People = "(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po)";
+        private static readonly Regex regexIs = new Regex($"^(?<who>{People}) is (?<what>.+)$");
+        private static readonly Regex regexAsk = new Regex($"^Ask (?<who>{People})$");
+        private static readonly Regex regexWhispers = new Regex($"^(?<who>{People}) whispers to (?<who2>{People})$");
+        private static readonly Regex regexYells = new Regex($"^(?<who>{People}) yells to (?<who2>{People})$");
+        private static readonly Regex regexSpeaks = new Regex($"^(?<who>{People}) speaks to (?<who2>{People})$");
+        private static readonly Regex regexTell = new Regex($"^Tell (?<who>{People}) (?<question>.+)$");
+        private static readonly Regex regexRob = new Regex($"^(?<robber>{People}) robs (?<victim>{People})$");
+        private static readonly Regex regexZaps = new Regex($"^(?<robber>{People}) zaps (?<victim>{People})$");
+        private static readonly Regex regexVote = new Regex($"^Vote on (?<question>.+)$");
 
         /*
-         * Po = Yes
-         * Laa Laa = No
-         * Tinky Winky = Yes
-         * Dipsy = No
-         * 
-         * Vote on brexit
-         *      Undecided (if number of yes == no)
-         *      Yes (yes > no)
-         *      No (no > yes)
+         * Laa Laa = 5
+         * Po zaps Laa Laa
+         *  Laa Laa =4 
          */
 
 
@@ -63,7 +59,7 @@ namespace TeletubbiesCmd
         private static void Quote()
         {
             var rnd = new Random();
-            var quotes = new string[] 
+            var quotes = new string[]
             {
                 "Big Hug!",
                 "Time for Tubby bye-bye! Time for Tubby bye-bye!",
@@ -87,18 +83,22 @@ namespace TeletubbiesCmd
                     case 0:
                         Console.ForegroundColor = ConsoleColor.Green;
                         Console.WriteLine("Dipsy is now the leader");
+                        Console.WriteLine(teletubbies.DisplayDispy("I am your leader now"));
                         break;
                     case 1:
                         Console.ForegroundColor = ConsoleColor.DarkYellow;
                         Console.WriteLine("Laa Laa is now the leader");
+                        Console.WriteLine(teletubbies.DisplayLaaLaa("I am your leader now"));
                         break;
                     case 2:
                         Console.ForegroundColor = ConsoleColor.Blue;
                         Console.WriteLine("Tinky Winky is now the leader");
+                        Console.WriteLine(teletubbies.DisplayTinkyWinky("I am your leader now"));
                         break;
                     case 3:
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine("Po is now the leader");
+                        Console.WriteLine(teletubbies.DisplayPo("I am your leader now"));
                         break;
                 }
             }
@@ -154,6 +154,25 @@ namespace TeletubbiesCmd
 
             return match.Success;
         }
+        private static bool ZapsCommand(Teletubbies teletubbies, string command)
+        {
+            var match = regexZaps.Match(command);
+            if (match.Success)
+            {
+                var victim = match.Groups["victim"].Value;
+                var currentValue = teletubbies.Read(victim);
+
+                if (int.TryParse(currentValue, out int valueAsInteger))
+                {
+                    valueAsInteger--;
+                    teletubbies.Set(victim, valueAsInteger.ToString());
+                }
+
+            }
+
+            return match.Success;
+        }
+
         private static bool TellCommand(Teletubbies teletubbies, string command)
         {
             var match = regexTell.Match(command);
@@ -226,7 +245,8 @@ namespace TeletubbiesCmd
             {
                 var who = match.Groups["who"].Value;
                 var what = teletubbies.Read(who);
-                Console.WriteLine($"{who} says {what}");
+                // Console.WriteLine($"{who} says {what}");
+                Console.WriteLine(teletubbies.Display(who, what));
             }
 
             return match.Success;
