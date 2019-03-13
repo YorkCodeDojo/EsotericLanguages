@@ -88,7 +88,7 @@ Example
 
 `Tell Po your name`    
 _Po asks what is your name?_ __David__       
-`Ask Po`  => _Tinky Winky says David_
+`Ask Po`  => _Po says David_
 
 ---
 ### Gets bigger
@@ -98,8 +98,8 @@ Example
 
 ```
 Dipsy is 40
-Dispy gets bigger
-Ask Dispy  => Dipsy says 41
+Dipsy gets bigger
+Ask Dipsy  => Dipsy says 41
 ```
 
 ---
@@ -110,8 +110,8 @@ Example
 
 ```
 Dipsy is 40
-Dispy gets smaller
-Ask Dispy  => Dipsy says 39
+Dipsy gets smaller
+Ask Dipsy  => Dipsy says 39
 ```
 
 
@@ -144,12 +144,12 @@ Example
 ```
 Po is 5
 Bedtime is when Po is 6
-Ask Po  => _Po says 5_
+Ask Po  => Po says 5
 If it is BedTime then Po is 7
-Ask Po  => _Po says 5_
+Ask Po  => Po says 5
 Bedtime is when Po is 5
 If is it BedTime then Po is 7
-Ask Po  => _Po says 7_
+Ask Po  => Po says 7
 ```
 
 ---
