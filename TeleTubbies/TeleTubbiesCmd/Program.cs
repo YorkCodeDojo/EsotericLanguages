@@ -10,12 +10,28 @@ namespace TeletubbiesCmd
         private static readonly Regex regexYells = new Regex("^(?<who>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po)) yells to (?<who2>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po))$");
         private static readonly Regex regexSpeaks = new Regex("^(?<who>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po)) speaks to (?<who2>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po))$");
         private static readonly Regex regexTell = new Regex("^Tell (?<who>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po)) (?<question>.+)$");
+        private static readonly Regex regexRob = new Regex("^(?<robber>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po)) robs (?<victim>(Tinky Winky)|(Dipsy)|(Laa Laa)|(Po))$");
+        private static readonly Regex regexVote = new Regex("^Vote on (?<question>.+)$");
+
+        /*
+         * Po = Yes
+         * Laa Laa = No
+         * Tinky Winky = Yes
+         * Dipsy = No
+         * 
+         * Vote on brexit
+         *      Undecided (if number of yes == no)
+         *      Yes (yes > no)
+         *      No (no > yes)
+         */
+
+
 
         static void Main(string[] args)
         {
             var teletubbies = new Teletubbies();
 
-
+            var rnd = new Random();
             var command = "";
             while (command != "byebye")
             {
@@ -24,12 +40,18 @@ namespace TeletubbiesCmd
                 command = Console.ReadLine();
 
                 var ok = false;
-                ok = ok || IsCommand(teletubbies,  command);
-                ok = ok || AskCommand(teletubbies,  command);
-                ok = ok || WhispersCommand(teletubbies,  command);
-                ok = ok || YellsCommand(teletubbies,  command);
-                ok = ok || SpeaksCommand(teletubbies,  command);
-                ok = ok || TellCommand(teletubbies,  command);
+                ok = ok || IsCommand(teletubbies, command);
+                ok = ok || AskCommand(teletubbies, command);
+                ok = ok || WhispersCommand(teletubbies, command);
+                ok = ok || YellsCommand(teletubbies, command);
+                ok = ok || SpeaksCommand(teletubbies, command);
+                ok = ok || TellCommand(teletubbies, command);
+                ok = ok || RobsCommand(teletubbies, command);
+                ok = ok || VoteCommand(teletubbies, command);
+                ok = ok || CallElectionCommand(teletubbies, command);
+
+                if (rnd.Next(0, 5) == 0)
+                    Quote();
 
                 if (!ok)
                 {
@@ -38,6 +60,100 @@ namespace TeletubbiesCmd
             }
         }
 
+        private static void Quote()
+        {
+            var rnd = new Random();
+            var quotes = new string[] 
+            {
+                "Big Hug!",
+                "Time for Tubby bye-bye! Time for Tubby bye-bye!",
+                "Teletubbies love each other very much.",
+                "Over the hills and far away, Teletubbies come to play."
+            };
+            var quote = quotes[rnd.Next(quotes.Length)];
+            Console.WriteLine(quote);
+        }
+
+        private static bool CallElectionCommand(Teletubbies teletubbies, string command)
+        {
+            var matched = (command == "Call Election");
+            if (matched)
+            {
+                var rnd = new Random();
+                var person = rnd.Next(4);
+
+                switch (person)
+                {
+                    case 0:
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.WriteLine("Dipsy is now the leader");
+                        break;
+                    case 1:
+                        Console.ForegroundColor = ConsoleColor.DarkYellow;
+                        Console.WriteLine("Laa Laa is now the leader");
+                        break;
+                    case 2:
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.WriteLine("Tinky Winky is now the leader");
+                        break;
+                    case 3:
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Po is now the leader");
+                        break;
+                }
+            }
+
+            return matched;
+        }
+        private static bool VoteCommand(Teletubbies teletubbies, string command)
+        {
+            var match = regexVote.Match(command);
+            if (match.Success)
+            {
+                var question = match.Groups["question"].Value;
+
+                var numberOfNos = 0;
+                numberOfNos = numberOfNos + (teletubbies.Read("Dipsy") == "No" ? 1 : 0);
+                numberOfNos = numberOfNos + (teletubbies.Read("Tinky Winky") == "No" ? 1 : 0);
+                numberOfNos = numberOfNos + (teletubbies.Read("Laa Laa") == "No" ? 1 : 0);
+                numberOfNos = numberOfNos + (teletubbies.Read("Po") == "No" ? 1 : 0);
+
+                var numberOfYes = 0;
+                numberOfYes = numberOfYes + (teletubbies.Read("Dipsy") == "Yes" ? 1 : 0);
+                numberOfYes = numberOfYes + (teletubbies.Read("Tinky Winky") == "Yes" ? 1 : 0);
+                numberOfYes = numberOfYes + (teletubbies.Read("Laa Laa") == "Yes" ? 1 : 0);
+                numberOfYes = numberOfYes + (teletubbies.Read("Po") == "Yes" ? 1 : 0);
+
+                if (numberOfNos == numberOfYes)
+                    Console.WriteLine($"The vote on {question} was undecided.");
+
+                if (numberOfNos > numberOfYes)
+                    Console.WriteLine($"They voted against {question}.");
+
+                if (numberOfNos < numberOfYes)
+                    Console.WriteLine($"They voted for {question}.");
+            }
+
+            return match.Success;
+        }
+        private static bool RobsCommand(Teletubbies teletubbies, string command)
+        {
+            var match = regexRob.Match(command);
+            if (match.Success)
+            {
+                var robber = match.Groups["robber"].Value;
+                var victim = match.Groups["victim"].Value;
+
+                var currentValueFromVictim = teletubbies.Read(victim);
+                var currentValueFromRobber = teletubbies.Read(robber);
+
+                teletubbies.Set(robber, currentValueFromRobber + currentValueFromVictim);
+                teletubbies.Set(victim, "");
+
+            }
+
+            return match.Success;
+        }
         private static bool TellCommand(Teletubbies teletubbies, string command)
         {
             var match = regexTell.Match(command);
