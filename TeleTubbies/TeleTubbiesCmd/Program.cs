@@ -14,6 +14,7 @@ namespace TeletubbiesCmd
         private static readonly Regex regexRob = new Regex($"^(?<robber>{People}) robs (?<victim>{People})$");
         private static readonly Regex regexZaps = new Regex($"^(?<robber>{People}) zaps (?<victim>{People})$");
         private static readonly Regex regexVote = new Regex($"^Vote on (?<question>.+)$");
+        private static readonly Regex regexEat = new Regex($"^(?<who>{People}) eats Tubby (?<food>(Custard)|(Toast))$");
 
         /*
          * Laa Laa = 5
@@ -45,6 +46,8 @@ namespace TeletubbiesCmd
                 ok = ok || RobsCommand(teletubbies, command);
                 ok = ok || VoteCommand(teletubbies, command);
                 ok = ok || CallElectionCommand(teletubbies, command);
+                ok = ok || ZapsCommand(teletubbies, command);
+                ok = ok || EatCommand(teletubbies, command);
 
                 if (rnd.Next(0, 5) == 0)
                     Quote();
@@ -167,12 +170,33 @@ namespace TeletubbiesCmd
                     valueAsInteger--;
                     teletubbies.Set(victim, valueAsInteger.ToString());
                 }
-
             }
 
             return match.Success;
         }
+        private static bool EatCommand(Teletubbies teletubbies, string command)
+        {
+            var match = regexEat.Match(command);
+            if (match.Success)
+            {
+                var who = match.Groups["who"].Value;
+                var food = match.Groups["food"].Value;
+                var currentValue = teletubbies.Read(who);
 
+                if (int.TryParse(currentValue, out int valueAsInteger))
+                {
+                    if (food == "Custard")
+                        valueAsInteger += 1;
+
+                    if (food == "Toast")
+                        valueAsInteger += 5;
+
+                    teletubbies.Set(who, valueAsInteger.ToString());
+                }
+            }
+
+            return match.Success;
+        }
         private static bool TellCommand(Teletubbies teletubbies, string command)
         {
             var match = regexTell.Match(command);
